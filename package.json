@@ -6,7 +6,7 @@
     "develop": "gatsby develop",
     "start": "gatsby develop",
     "build": "gatsby build",
-    "clean": "gatsby clean"
+    "clean": "gatsby clean",
     "deploy": "gatsby build && gh-pages -d public -b master -r https://$GH_TOKEN@github.com/VedaDev/vedadev.github.io.git"
   },
   "license": "0BSD",
