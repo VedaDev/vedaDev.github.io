@@ -1,0 +1,341 @@
+# String, Numbers, and Math
+
+---
+
+- Counting duplicate characters
+    1. 首先會先想到利用 `map` 來記數，個別單字出現的次數。
+
+        ```java
+        public Map<Character, Integer> countDuplicateCharacters(String str) {  
+        	Map<Character, Integer> result = new HashMap<>();  
+
+        	// or use for(char ch: str.toCharArray()) { ... }  
+        	for (int i = 0; i<str.length(); i++) {    
+        		char ch = str.charAt(i);     
+        		result.compute(ch, (k, v) -> (v == null) ? 1 : ++v);  
+        	}  
+
+        return result;
+        }
+        ```
+
+    2. 完全利用 Java 8 lambda 的方法撰寫
+
+        ```java
+        public Map<Character, Long> countDuplicateCharacters(String str) {  
+        	Map<Character, Long> result = str.chars()    
+        		.mapToObj(c -> (char) c)    
+        		.collect(Collectors.groupingBy(c -> c, Collectors.counting()));  
+        	
+        	return result;
+        }
+        ```
+
+        須要注意到 `str.chars()` 回傳為 `IntStream` 及 `mapToObj` 轉換至 `char 型態`
+        lambda 使用方法未到這麼熟練還沒辦法在第一時間內寫出來
+
+    3. 此問題真的要注意到的其實是 `String` 所存的編碼方式為 `ASCII` 或是 `UnicodeASCII` 是其實是介於 32-127 之間的 `int` 數值或是 `extended ASCII` 介於 128-255。
+    比較少討論的是 `Unicode` ，這邊先跳過有空回來補…
+
+- Finding the first non-repeated character
+
+    找出字串中第一個不重複的字元。
+    第一個想到的做法是利用 `LinkedHashMap` 會保持 key 新增的順序特性來查找。
+    比較接近書上第二種的做法，差在中間沒想到利用 `chars.compute(ch, (k, v) -> (v == null) ? 1 : ++v);`
+    產生較為簡潔的做法。
+
+    1. 常規做法都先假定字元為 `ASCII` （256 種）`Unicode` 之後討論
+    ，建陣列紀錄字元出現的次數。
+
+        ```java
+        private static final int EXTENDED_ASCII_CODES = 256;
+
+        public char firstNonRepeatedCharacter(String str) {  
+        	int[] flags = new int[EXTENDED_ASCII_CODES];
+        	
+        	// init to -1
+        	// can use Arrays.fill(flags, -1); instead  
+        	for (int i = 0; i < flags.length; i++) {    
+        		flags[i] = -1;  
+        	}
+          
+        	for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+            if (flags[ch] == -1) {
+              flags[ch] = i;
+            } else {
+              flags[ch] = -2;
+            }
+          }
+
+          int position = Integer.MAX_VALUE;
+          for (int i = 0; i < EXTENDED_ASCII_CODES; i++) {
+            if (flags[i] >= 0) {
+              position = Math.min(position, flags[i]);
+            }
+          }
+          return position == Integer.MAX_VALUE ?
+            Character.MIN_VALUE : str.charAt(position);
+        }
+        ```
+
+    2. `LinkedHashMap` 
+
+        > This Java map is an insertion-order map (it maintains the order in which the keys were inserted into the map) and is very convenient for this solution.
+
+        ```java
+        public char firstNonRepeatedCharacter(String str) {
+          Map<Character, Integer> chars = new LinkedHashMap<>();
+          // or use for(char ch: str.toCharArray()) { ... }
+
+          for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+            chars.compute(ch, (k, v) -> (v == null) ? 1 : ++v);
+          }
+
+          for (Map.Entry<Character, Integer> entry: chars.entrySet()) {
+            if (entry.getValue() == 1) {
+              return entry.getKey();
+            }
+          }
+          return Character.MIN_VALUE;
+        }
+        ```
+
+    3. 最後一種兼具處理 `ASCII` 和 `Unicode` 且用 lambda 方式
+    實戰上還是沒熟練到能直接寫出來;;
+
+        ```java
+        public static String firstNonRepeatedCharacter(String str) {
+         
+          Map<Integer, Long> chs = str.codePoints()
+            .mapToObj(cp -> cp)
+            .collect(Collectors.groupingBy(Function.identity(),
+              LinkedHashMap::new, Collectors.counting()));
+
+          int cp = chs.entrySet().stream()
+           .filter(e -> e.getValue() == 1L)
+           .findFirst()
+           .map(Map.Entry::getKey)
+           .orElse(Integer.valueOf(Character.MIN_VALUE));
+
+          return String.valueOf(Character.toChars(cp));
+        }
+        ```
+
+- Reversing letters and words
+
+    反轉句子中每個單字，「只有單字字母的順序」。
+
+    1. Notice that the preceding two methods return a string containing the letters of each word reversed, but the words themselves are in the same initial order.
+
+    ```java
+    private static final Pattern PATTERN = Pattern.compile(" +");
+    ...
+    public static String reverseWords(String str) {
+
+      return PATTERN.splitAsStream(str)
+        .map(w -> new StringBuilder(w).reverse())
+        .collect(Collectors.joining(" "));
+    }
+    ```
+
+    ```java
+    public String reverse(String str) {
+
+      return new StringBuilder(str).reverse().toString();
+    }
+    ```
+
+- Checking whether a string contains only digits
+
+    `Character.isDigit()`
+
+    `String.matches()`
+
+    ```java
+    public static boolean containsOnlyDigits(String str) {
+
+      return !str.chars()
+        .anyMatch(n -> !Character.isDigit(n));
+    }
+    ```
+
+    Notice that Java 8 functional style and regular expression-based solutions are usually slow, so if speed is a requirement, then it's better to rely on the first solution using Character.isDigit().
+
+    ```java
+    public static boolean containsOnlyDigits(String str) {
+
+      for (int i = 0; i < str.length(); i++) {
+        if (!Character.isDigit(str.charAt(i))) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+    ```
+
+    > Avoid solving this problem via parseInt() or parseLong(). First of all, it's bad practice to catch NumberFormatException and take business logic decisions in the catch block. Second, these methods verify whether the string is a valid number, not whether it contains only digits (for example, -4 is valid).
+
+- Counting vowels and consonants
+    1. 用 partioningBy 將 true false 切開
+    2. 用 Pair<>
+
+    ```java
+    Map<Boolean, Long> result = str.chars()
+      .mapToObj(c -> (char) c)
+      .filter(ch -> (ch >= 'a' && ch <= 'z'))
+      .collect(partitioningBy(c -> allVowels.contains(c), counting()));
+    ```
+
+    ```java
+    private static final Set<Character> allVowels
+                = new HashSet(Arrays.asList('a', 'e', 'i', 'o', 'u'));
+
+    public static Pair<Long, Long> countVowelsAndConsonants(String str) {
+
+      str = str.toLowerCase();
+
+      long vowels = str.chars()
+        .filter(c -> allVowels.contains((char) c))
+        .count();
+
+      long consonants = str.chars()
+        .filter(c -> !allVowels.contains((char) c))
+        .filter(ch -> (ch >= 'a' && ch<= 'z'))
+        .count();
+
+      return Pair.of(vowels, consonants);
+    }
+    ```
+
+- Counting the occurrences of a certain character (u)
+
+    異想不到的方法
+
+    ```java
+    public static int countOccurrencesOfACertainCharacter(
+        String str, char ch) {
+
+      return str.length() - str.replace(String.valueOf(ch), "").length();
+    }
+    ```
+
+    ```java
+    public static long countOccurrencesOfACertainCharacter(
+        String str, char ch) {
+
+      return str.chars()
+        .filter(c -> c == ch)
+        .count();
+    }
+    ```
+
+    > For third-party library support, please consider Apache Commons Lang, StringUtils.countMatches(), Spring Framework, StringUtils.countOccurrencesOf(), and Guava, [CharMatcher.is](http://charmatcher.is/)().countIn().
+
+- Converting a string into an int, long, float, or double
+
+    觀念用法，字串轉 primitive type 或是 boxed type，
+    xxx. parseXXX() -> 轉成原始型態
+    xxx.valueOf() -> 轉成物件型態
+
+    ```java
+    int toInt = Integer.parseInt(TO_INT);
+    long toLong = Long.parseLong(TO_LONG);
+    float toFloat = Float.parseFloat(TO_FLOAT);
+    double toDouble = Double.parseDouble(TO_DOUBLE);
+
+    //
+
+    Integer toInt = Integer.valueOf(TO_INT);
+    Long toLong = Long.valueOf(TO_LONG);
+    Float toFloat = Float.valueOf(TO_FLOAT);
+    Double toDouble = Double.valueOf(TO_DOUBLE);
+    ```
+
+    While parsing fail, both parseXXX and valueOf methods will throw `NumberFormatException`
+
+    ```java
+    private static final String WRONG_NUMBER = "452w";
+
+    try {
+      Integer toIntWrong1 = Integer.valueOf(WRONG_NUMBER);
+    } catch (NumberFormatException e) {
+      System.err.println(e);
+      // handle exception
+    }
+
+    try {
+      int toIntWrong2 = Integer.parseInt(WRONG_NUMBER);
+    } catch (NumberFormatException e) {
+      System.err.println(e);
+      // handle exception
+    }
+    ```
+
+- Removing white spaces from a string
+
+    ```java
+    public static String removeWhitespaces(String str) {
+      return str.replaceAll("\\s", "");
+    }
+    ```
+
+    > For third-party library support, please consider Apache Commons Lang, `StringUtils.deleteWhitespace()`, and the Spring Framework, `StringUtils.trimAllWhitespace()`.
+
+- Joining multiple strings with a delimiter
+
+    算是非常常見的問題，在後端常遇到的就是要組語法 X or X or X or ...。
+    套用 `StringBuilder`  `append()` 算是最直觀的想法，
+    不過每次遇到最後一個都要另外處理令人不快。
+
+    1. `StringBuilder`
+
+        ```java
+        public static String joinByDelimiter(char delimiter, String...args) {
+
+          StringBuilder result = new StringBuilder();
+
+          int i = 0;
+          for (i = 0; i < args.length - 1; i++) {
+            result.append(args[i]).append(delimiter);
+          }
+          result.append(args[i]);
+
+          return result.toString();
+        }
+        ```
+
+    2. `StringJoiner` from Java 8
+
+        ```java
+        public static String joinByDelimiter(char delimiter, String...args) {
+          StringJoiner joiner = new StringJoiner(String.valueOf(delimiter));
+
+          for (String arg: args) {
+            joiner.add(arg);
+          }
+
+          return joiner.toString();
+        }
+        ```
+
+        or another `String.join()`
+
+        ```java
+        String join(CharSequence delimiter, CharSequence... elems)
+        String join(CharSequence delimiter,
+          Iterable<? extends CharSequence> elems)
+
+        String result = String.join(" ", "how", "are", "you"); // how are you
+        ```
+
+    3. `Collectors.joining()`
+
+        ```java
+        public static String joinByDelimiter(char delimiter, String...args) {
+          return Arrays.stream(args, 0, args.length)
+            .collect(Collectors.joining(String.valueOf(delimiter)));
+        }
+        ```
