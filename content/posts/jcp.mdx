@@ -7,17 +7,17 @@ date: 2021-06-10
     1. 首先會先想到利用 `map` 來記數，個別單字出現的次數。
 
         ```java
-        public Map<Character, Integer> countDuplicateCharacters(String str) {  
-        	Map<Character, Integer> result = new HashMap<>();  
+		public Map<Character, Integer> countDuplicateCharacters(String str) {  
+			Map<Character, Integer> result = new HashMap<>();  
 
-        	// or use for(char ch: str.toCharArray()) { ... }  
-        	for (int i = 0; i<str.length(); i++) {    
-        		char ch = str.charAt(i);     
-        		result.compute(ch, (k, v) -> (v == null) ? 1 : ++v);  
-        	}  
+			// or use for(char ch: str.toCharArray()) { ... }  
+			for (int i = 0; i<str.length(); i++) {    
+				char ch = str.charAt(i);     
+				result.compute(ch, (k, v) -> (v == null) ? 1 : ++v);  
+			}  
 
-        return result;
-        }
+			return result;
+		}
         ```
 
     2. 完全利用 Java 8 lambda 的方法撰寫
@@ -47,38 +47,38 @@ date: 2021-06-10
 
     1. 常規做法都先假定字元為 `ASCII` （256 種）`Unicode` 之後討論
     ，建陣列紀錄字元出現的次數。
-	
-	```java
-        private static final int EXTENDED_ASCII_CODES = 256;
 
-        public char firstNonRepeatedCharacter(String str) {  
-        	int[] flags = new int[EXTENDED_ASCII_CODES];
-        	
-        	// init to -1
-        	// can use Arrays.fill(flags, -1); instead  
-        	for (int i = 0; i < flags.length; i++) {    
-        		flags[i] = -1;  
-        	}
-          
-        	for (int i = 0; i < str.length(); i++) {
+    ```java
+    private static final int EXTENDED_ASCII_CODES = 256;
+
+    public char firstNonRepeatedCharacter(String str) {  
+        int[] flags = new int[EXTENDED_ASCII_CODES];
+
+        // init to -1
+        // can use Arrays.fill(flags, -1); instead  
+        for (int i = 0; i < flags.length; i++) {    
+           flags[i] = -1;  
+        }
+
+        for (int i = 0; i < str.length(); i++) {
             char ch = str.charAt(i);
             if (flags[ch] == -1) {
-              flags[ch] = i;
+                flags[ch] = i;
             } else {
-              flags[ch] = -2;
+                flags[ch] = -2;
             }
-          }
-
-          int position = Integer.MAX_VALUE;
-          for (int i = 0; i < EXTENDED_ASCII_CODES; i++) {
-            if (flags[i] >= 0) {
-              position = Math.min(position, flags[i]);
-            }
-          }
-          return position == Integer.MAX_VALUE ?
-            Character.MIN_VALUE : str.charAt(position);
         }
-	```
+    
+        int position = Integer.MAX_VALUE;
+        for (int i = 0; i < EXTENDED_ASCII_CODES; i++) {
+            if (flags[i] >= 0) {
+                position = Math.min(position, flags[i]);
+            }
+        }
+        return position == Integer.MAX_VALUE ?
+        Character.MIN_VALUE : str.charAt(position);
+    }
+    ```
 
     2. `LinkedHashMap` 
 
@@ -106,23 +106,23 @@ date: 2021-06-10
     3. 最後一種兼具處理 `ASCII` 和 `Unicode` 且用 lambda 方式
     實戰上還是沒熟練到能直接寫出來;;
 
-	```java
-        public static String firstNonRepeatedCharacter(String str) {
-         
-          Map<Integer, Long> chs = str.codePoints()
-            .mapToObj(cp -> cp)
-            .collect(Collectors.groupingBy(Function.identity(),
-              LinkedHashMap::new, Collectors.counting()));
+    ```java
+    public static String firstNonRepeatedCharacter(String str) {
 
-          int cp = chs.entrySet().stream()
-           .filter(e -> e.getValue() == 1L)
-           .findFirst()
-           .map(Map.Entry::getKey)
-           .orElse(Integer.valueOf(Character.MIN_VALUE));
+    Map<Integer, Long> chs = str.codePoints()
+                                .mapToObj(cp -> cp)
+                                .collect(Collectors.groupingBy(Function.identity(),
+    LinkedHashMap::new, Collectors.counting()));
 
-          return String.valueOf(Character.toChars(cp));
-        }
-	```
+    int cp = chs.entrySet().stream()
+                            .filter(e -> e.getValue() == 1L)
+                            .findFirst()
+                            .map(Map.Entry::getKey)
+                            .orElse(Integer.valueOf(Character.MIN_VALUE));
+
+    return String.valueOf(Character.toChars(cp));
+    }
+    ```
 
 - Reversing letters and words
 
