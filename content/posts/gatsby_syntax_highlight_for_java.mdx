@@ -1,0 +1,47 @@
+---
+title: Gatsby Syntax Highlight for Java
+date: 2021-06-19
+---
+
+# Syntax Highlight for java language
+
+使用 gatsby 才寫第一篇就遇上問題，無法開啟 java syntax highlight，
+使得我的 code block 可讀性很差（除此之外版面配色其實也蠻醜的…）
+
+這邊附上參考資料，如果遇上某種語言上色可以參考一下作法，
+雖然目前還不是很清楚為何，但至少有解法 ^_^
+
+首先先安裝以下套件
+
+```
+npm install gatsby-transformer-remark gatsby-remark-prismjs prismjs
+
+```
+
+接著建立 `gatsby-browser.js`
+然後貼上以下內容
+
+```jsx
+import React from "react";
+import { MDXProvider } from "@mdx-js/react";
+import Highlight, { defaultProps } from "prism-react-renderer";
+import Prism from "prism-react-renderer/prism";
+import theme from "prism-react-renderer/themes/nightOwl";
+import "./src/theme/scss/main.scss";
+
+(typeof global !== "undefined" ? global : window).Prism = Prism;
+
+require("prismjs/components/prism-kotlin");
+require("prismjs/components/prism-csharp");
+
+```
+
+因為我是要替 java 上色，所以裡面的 csharp 被我改成 java。
+還有 main.scss 那行也移除，主要是我沒有那個檔案。
+其實裡面 import 的東西我幾乎都沒有用到，所以移除也沒關係。
+
+## Reference
+
+[gatsby-remark-prismjs](https://www.gatsbyjs.com/plugins/gatsby-remark-prismjs/?=highlight)
+
+[Adding Out of the Box Languages · Issue #53 · FormidableLabs/prism-react-renderer](https://github.com/FormidableLabs/prism-react-renderer/issues/53)
