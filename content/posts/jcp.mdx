@@ -47,8 +47,8 @@ date: 2021-06-10
 
     1. 常規做法都先假定字元為 `ASCII` （256 種）`Unicode` 之後討論
     ，建陣列紀錄字元出現的次數。
-
-        ```java
+	
+	```java
         private static final int EXTENDED_ASCII_CODES = 256;
 
         public char firstNonRepeatedCharacter(String str) {  
@@ -78,7 +78,7 @@ date: 2021-06-10
           return position == Integer.MAX_VALUE ?
             Character.MIN_VALUE : str.charAt(position);
         }
-        ```
+	```
 
     2. `LinkedHashMap` 
 
@@ -106,7 +106,7 @@ date: 2021-06-10
     3. 最後一種兼具處理 `ASCII` 和 `Unicode` 且用 lambda 方式
     實戰上還是沒熟練到能直接寫出來;;
 
-        ```java
+	```java
         public static String firstNonRepeatedCharacter(String str) {
          
           Map<Integer, Long> chs = str.codePoints()
@@ -122,7 +122,7 @@ date: 2021-06-10
 
           return String.valueOf(Character.toChars(cp));
         }
-        ```
+	```
 
 - Reversing letters and words
 
@@ -130,23 +130,23 @@ date: 2021-06-10
 
     1. Notice that the preceding two methods return a string containing the letters of each word reversed, but the words themselves are in the same initial order.
 
-    ```java
-    private static final Pattern PATTERN = Pattern.compile(" +");
-    ...
-    public static String reverseWords(String str) {
+        ```java
+        private static final Pattern PATTERN = Pattern.compile(" +");
+        ...
+        public static String reverseWords(String str) {
 
-      return PATTERN.splitAsStream(str)
-        .map(w -> new StringBuilder(w).reverse())
-        .collect(Collectors.joining(" "));
-    }
-    ```
+          return PATTERN.splitAsStream(str)
+            .map(w -> new StringBuilder(w).reverse())
+            .collect(Collectors.joining(" "));
+        }
+        ```
 
-    ```java
-    public String reverse(String str) {
+        ```java
+        public String reverse(String str) {
 
-      return new StringBuilder(str).reverse().toString();
-    }
-    ```
+          return new StringBuilder(str).reverse().toString();
+        }
+        ```
 
 - Checking whether a string contains only digits
 
@@ -183,33 +183,33 @@ date: 2021-06-10
     1. 用 partioningBy 將 true false 切開
     2. 用 `Pair<>`
 
-    ```java
-    Map<Boolean, Long> result = str.chars()
-      .mapToObj(c -> (char) c)
-      .filter(ch -> (ch >= 'a' && ch <= 'z'))
-      .collect(partitioningBy(c -> allVowels.contains(c), counting()));
-    ```
+        ```java
+        Map<Boolean, Long> result = str.chars()
+          .mapToObj(c -> (char) c)
+          .filter(ch -> (ch >= 'a' && ch <= 'z'))
+          .collect(partitioningBy(c -> allVowels.contains(c), counting()));
+        ```
 
-    ```java
-    private static final Set<Character> allVowels
-                = new HashSet(Arrays.asList('a', 'e', 'i', 'o', 'u'));
+        ```java
+        private static final Set<Character> allVowels
+                    = new HashSet(Arrays.asList('a', 'e', 'i', 'o', 'u'));
 
-    public static Pair<Long, Long> countVowelsAndConsonants(String str) {
+        public static Pair<Long, Long> countVowelsAndConsonants(String str) {
+    
+          str = str.toLowerCase();
 
-      str = str.toLowerCase();
+          long vowels = str.chars()
+            .filter(c -> allVowels.contains((char) c))
+            .count();
 
-      long vowels = str.chars()
-        .filter(c -> allVowels.contains((char) c))
-        .count();
-
-      long consonants = str.chars()
-        .filter(c -> !allVowels.contains((char) c))
-        .filter(ch -> (ch >= 'a' && ch<= 'z'))
-        .count();
-
-      return Pair.of(vowels, consonants);
-    }
-    ```
+          long consonants = str.chars()
+            .filter(c -> !allVowels.contains((char) c))
+            .filter(ch -> (ch >= 'a' && ch<= 'z'))
+            .count();
+    
+          return Pair.of(vowels, consonants);
+        }
+        ```
 
 - Counting the occurrences of a certain character (u)
 
